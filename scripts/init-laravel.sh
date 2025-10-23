@@ -1,43 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Bootstrap supporting services
-echo "Starting containers (db, redis, app)..."
-docker compose up -d db redis app
+# 1) Create Laravel skeleton in the repo BEFORE building the image
+if [ ! -f "composer.json" ]; then
+  echo "Scaffolding Laravel 11..."
+  
+  # Backup existing app and routes directories if they exist
+  if [ -d "app" ]; then
+    echo "Backing up existing app directory..."
+    mv app app.backup
+  fi
+  if [ -d "routes" ]; then
+    echo "Backing up existing routes directory..."
+    mv routes routes.backup
+  fi
+  
+  # Create Laravel project
+  docker run --rm -u $(id -u):$(id -g) -v "$PWD":/app -w /app composer:2 create-project laravel/laravel:^11.0 .
+  
+  # Restore custom files from backups
+  if [ -d "app.backup" ]; then
+    echo "Restoring custom app files..."
+    cp -r app.backup/* app/ 2>/dev/null || true
+    rm -rf app.backup
+  fi
+  if [ -d "routes.backup" ]; then
+    echo "Restoring custom routes files..."
+    cp -r routes.backup/* routes/ 2>/dev/null || true
+    rm -rf routes.backup
+  fi
+fi
 
-# Create Laravel 11 skeleton in a temp dir inside the app container, then merge into repo root
-echo "Scaffolding Laravel 11..."
-docker compose run --rm app sh -lc '
-  set -e
-  # Create in temp folder to avoid overwriting existing files (docker-compose, Dockerfile, etc.)
-  composer create-project laravel/laravel:^11.0 /var/www/laravel-tmp
+# 2) Require core packages
+docker run --rm -u $(id -u):$(id -g) -v "$PWD":/app -w /app composer:2 require \
+  laravel/sanctum laravel/horizon laravel/pint --no-interaction
 
-  # Move all files (including dotfiles) from laravel-tmp into /var/www
-  # Busybox mv: use find to move contents safely
-  find /var/www/laravel-tmp -mindepth 1 -maxdepth 1 -exec mv -f {} /var/www/ \;
-  rm -rf /var/www/laravel-tmp
+# 3) Env + start services
+cp -n .env.example .env || true
+docker compose up -d
 
-  # Ensure vendor present and install core packages
-  composer install --no-interaction --prefer-dist
+# 4) App setup
+docker compose exec app php artisan key:generate || true
+docker compose exec app php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider" --tag="sanctum-migrations" || true
+docker compose exec app php artisan migrate || true
+docker compose exec app php artisan horizon:install || true
 
-  # Add packages (Sanctum, Horizon, Pint)
-  composer require laravel/sanctum laravel/horizon laravel/pint --no-interaction
-
-  # Generate app key and run Horizon install
-  cp -n .env.example .env || true
-  php artisan key:generate
-  php artisan horizon:install || true
-
-  # Try to publish Sanctum migrations if needed (Laravel 11 often autoloads)
-  php artisan vendor:publish --provider="Laravel\\Sanctum\\SanctumServiceProvider" --tag="sanctum-migrations" --force || true
-
-  # Cache drivers/queue set via .env; do a best-effort migrate
-  php artisan migrate || true
-'
-
-echo
-echo "Done. Next steps:"
-echo "1) Check .env for SANCTUM_STATEFUL_DOMAINS=localhost:5173 and SESSION_DOMAIN=localhost"
-echo "2) Start the full stack: docker compose up -d"
-echo "3) API: http://localhost:8080, Health: http://localhost:8080/api/health"
-echo "4) Horizon dashboard (when routed): /horizon"
+echo "Done. Visit: http://localhost:8080/api/health"

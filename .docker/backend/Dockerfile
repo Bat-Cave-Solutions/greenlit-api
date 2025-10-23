@@ -5,7 +5,7 @@ FROM php:8.3-fpm-alpine
 RUN apk add --no-cache git bash curl libpq-dev oniguruma-dev autoconf make g++ icu-dev zlib-dev
 
 # PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql mbstring bcmath intl
+RUN docker-php-ext-install pdo pdo_pgsql mbstring bcmath intl pcntl
 RUN pecl install redis && docker-php-ext-enable redis
 
 # Composer
