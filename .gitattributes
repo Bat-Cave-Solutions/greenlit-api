@@ -1,0 +1,16 @@
+# Default to LF on checkout
+* text=auto eol=lf
+
+# Shell / config / docker / yaml must be LF
+*.sh text eol=lf
+*.bash text eol=lf
+*.conf text eol=lf
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Windows scripts may use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

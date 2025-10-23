@@ -1,0 +1,102 @@
+openapi: 3.0.3
+info:
+  title: Greenlit API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  app: { type: string }
+                  time: { type: string, format: date-time }
+  /api/projects:
+    get:
+      summary: List projects
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Create project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                code: { type: string }
+              required: [ name ]
+      responses:
+        '201':
+          description: Created
+  /api/emissions:
+    get:
+      summary: List emissions with pagination and filters
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: production_id
+          schema: { type: integer }
+        - in: query
+          name: activity_code
+          schema: { type: string }
+        - in: query
+          name: date_from
+          schema: { type: string, format: date }
+        - in: query
+          name: date_to
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Create emission record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmissionRecord'
+      responses:
+        '201':
+          description: Created
+components:
+  schemas:
+    EmissionRecord:
+      type: object
+      properties:
+        production_id: { type: integer }
+        record_date: { type: string, format: date }
+        record_period: { type: integer }
+        department: { type: integer, nullable: true }
+        activity_code: { type: string }
+        scope: { type: integer }
+        country: { type: string }
+        emission_factor_id: { type: integer, nullable: true }
+        custom_factor_id: { type: integer, nullable: true }
+        data:
+          type: object
+          additionalProperties: true
+      required:
+        - production_id
+        - record_date
+        - activity_code
+        - scope
+        - country
