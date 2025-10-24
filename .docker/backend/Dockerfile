@@ -28,7 +28,18 @@ RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts || tru
 # Copy the rest (if building after project exists)
 COPY . .
 
+# Ensure Laravel writable directories exist and are owned by the www-data user
+# This makes the container behave correctly when code is bind-mounted from the host
+RUN mkdir -p /var/www/storage /var/www/bootstrap/cache \
+ && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+ && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
 # Final composer to ensure vendors are present in dev
 RUN composer install --no-interaction
 
+# Copy and enable entrypoint which ensures runtime permissions are correct
+COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
