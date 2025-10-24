@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('emissions', function (Blueprint $table) {
             $table->id();
-            
+
             // Core relational columns
             $table->unsignedBigInteger('production_id');
             $table->date('record_date');
@@ -34,13 +34,13 @@ return new class extends Migration
             
             // Record flags (bit flags for audit trail)
             $table->unsignedInteger('record_flags')->default(0);
-            
+
             // JSONB column for category-specific inputs
             $table->jsonb('data');
-            
+
             // Standard Laravel timestamps
             $table->timestamps();
-            
+
             // Basic indexes
             $table->index(['production_id', 'record_date']);
             $table->index(['production_id', 'record_period']);
@@ -69,21 +69,21 @@ return new class extends Migration
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
         
         // CHECK constraints for critical JSON keys based on activity code
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check 
+        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check
             CHECK (
-                activity_code NOT LIKE 'flight_%' OR 
+                activity_code NOT LIKE 'flight_%' OR
                 (data ? 'flight_origin' AND data ? 'flight_destination')
             )");
-            
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check 
+
+        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check
             CHECK (
-                activity_code NOT LIKE 'accommodation_%' OR 
+                activity_code NOT LIKE 'accommodation_%' OR
                 (data ? 'nights' AND data ? 'room_type')
             )");
-            
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check 
+
+        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check
             CHECK (
-                activity_code NOT LIKE 'waste_%' OR 
+                activity_code NOT LIKE 'waste_%' OR
                 (data ? 'waste_type' AND data ? 'amount')
             )");
     }
