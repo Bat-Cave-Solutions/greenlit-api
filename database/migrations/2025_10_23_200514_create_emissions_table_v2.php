@@ -1,8 +1,8 @@
 <?php
 
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -67,6 +67,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_record_period_check CHECK (record_period >= 190001 AND record_period <= 999912)');
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 3)');
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
+
         // CHECK constraints for critical JSON keys based on activity code
         DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check
             CHECK (
