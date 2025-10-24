@@ -12,7 +12,7 @@ class HealthController extends Controller
             'status' => 'ok',
             'app' => config('app.name'),
             'time' => now()->toIso8601String(),
-            'commit' => env('APP_GIT_SHA', null),
+            'commit' => config('app.git_sha'),
         ]);
     }
 }

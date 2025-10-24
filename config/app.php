@@ -99,6 +99,8 @@ return [
 
     'key' => env('APP_KEY'),
 
+    'git_sha' => env('APP_GIT_SHA'),
+
     'previous_keys' => [
         ...array_filter(
             explode(',', env('APP_PREVIOUS_KEYS', ''))
