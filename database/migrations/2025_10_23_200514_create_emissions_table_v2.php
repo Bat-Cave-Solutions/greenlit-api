@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,15 +23,15 @@ return new class extends Migration
             $table->string('activity_code', 50)->index();
             $table->tinyInteger('scope'); // 1, 2, or 3
             $table->string('country', 3); // ISO 3166-1 alpha-3
-            
+
             // Emission factor references
             $table->unsignedBigInteger('emission_factor_id')->nullable();
             $table->unsignedBigInteger('custom_factor_id')->nullable();
-            
+
             // Calculation metadata
             $table->string('calculation_version', 20);
             $table->decimal('calculated_co2e', 15, 6)->nullable(); // kg CO2e
-            
+
             // Record flags (bit flags for audit trail)
             $table->unsignedInteger('record_flags')->default(0);
 
@@ -56,7 +56,7 @@ return new class extends Migration
 
         // Create GIN index on JSONB data
         DB::statement('CREATE INDEX emissions_data_gin ON emissions USING gin (data)');
-        
+
         // Create indexes on generated columns
         DB::statement('CREATE INDEX emissions_flight_origin_idx ON emissions (flight_origin)');
         DB::statement('CREATE INDEX emissions_flight_destination_idx ON emissions (flight_destination)');
@@ -67,7 +67,6 @@ return new class extends Migration
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_record_period_check CHECK (record_period >= 190001 AND record_period <= 999912)');
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 3)');
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
-        
         // CHECK constraints for critical JSON keys based on activity code
         DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check
             CHECK (
