@@ -50,9 +50,9 @@ return new class extends Migration
         });
 
         // Add generated columns for high-usage JSON keys (flight example)
-        DB::statement('ALTER TABLE emissions ADD COLUMN flight_origin VARCHAR(10) GENERATED ALWAYS AS (data->>\'flight_origin\') STORED');
-        DB::statement('ALTER TABLE emissions ADD COLUMN flight_destination VARCHAR(10) GENERATED ALWAYS AS (data->>\'flight_destination\') STORED');
-        DB::statement('ALTER TABLE emissions ADD COLUMN flight_distance_km DECIMAL(10,2) GENERATED ALWAYS AS (CAST(data->>\'flight_distance_km\' AS DECIMAL(10,2))) STORED');
+        DB::statement("ALTER TABLE emissions ADD COLUMN flight_origin VARCHAR(10) GENERATED ALWAYS AS (data->>'flight_origin') STORED");
+        DB::statement("ALTER TABLE emissions ADD COLUMN flight_destination VARCHAR(10) GENERATED ALWAYS AS (data->>'flight_destination') STORED");
+        DB::statement("ALTER TABLE emissions ADD COLUMN flight_distance_km DECIMAL(10,2) GENERATED ALWAYS AS (CAST(data->>'flight_distance_km' AS DECIMAL(10,2))) STORED");
 
         // Create GIN index on JSONB data
         DB::statement('CREATE INDEX emissions_data_gin ON emissions USING gin (data)');
@@ -69,23 +69,9 @@ return new class extends Migration
         DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
 
         // CHECK constraints for critical JSON keys based on activity code
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check
-            CHECK (
-                activity_code NOT LIKE 'flight_%' OR
-                (data ? 'flight_origin' AND data ? 'flight_destination')
-            )");
-
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check
-            CHECK (
-                activity_code NOT LIKE 'accommodation_%' OR
-                (data ? 'nights' AND data ? 'room_type')
-            )");
-
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check
-            CHECK (
-                activity_code NOT LIKE 'waste_%' OR
-                (data ? 'waste_type' AND data ? 'amount')
-            )");
+        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check CHECK (activity_code NOT LIKE 'flight_%' OR (data ? 'flight_origin' AND data ? 'flight_destination'))");
+        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check CHECK (activity_code NOT LIKE 'accommodation_%' OR (data ? 'nights' AND data ? 'room_type'))");
+        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check CHECK (activity_code NOT LIKE 'waste_%' OR (data ? 'waste_type' AND data ? 'amount'))");
     }
 
     /**
