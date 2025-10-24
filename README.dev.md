@@ -31,6 +31,13 @@ Quick start (first time after clone)
    docker compose exec app bash -lc "vendor/bin/pint --test"
    docker compose exec app bash -lc "php artisan test"
 
+Viewing logs
+- To follow the application logs in real time (useful after `docker compose up`):
+
+  docker compose logs -f app
+
+  You can also limit initial output with `--tail`, e.g. `docker compose logs --tail=200 -f app`.
+
 Notes
 - The image includes an idempotent entrypoint script (`.docker/entrypoint.sh`) that fixes permissions at container start so developers don't need to run `chown` themselves.
 - Use VS Code Remote - WSL to edit files directly in WSL for best performance.
@@ -42,5 +49,3 @@ Troubleshooting
   docker compose exec app bash -lc "git config --global --add safe.directory /var/www"
 
 - If Docker on Windows is set to use the Windows backend instead of WSL, enable WSL integration in Docker Desktop.
-
-
