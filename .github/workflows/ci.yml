@@ -57,4 +57,4 @@ jobs:
           CACHE_DRIVER: array
           QUEUE_CONNECTION: sync
           BROADCAST_DRIVER: log
-        run: php artisan test -v
+        run: php artisan test
