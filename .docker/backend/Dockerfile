@@ -18,7 +18,7 @@ WORKDIR /var/www
 RUN { \
     echo 'memory_limit=-1'; \
     echo 'opcache.enable=1'; \
-    echo 'opcache.validate_timestamps=0'; \
+    echo 'opcache.validate_timestamps=1'; \
   } > /usr/local/etc/php/conf.d/app.ini
 
 # Copy only composer files to leverage Docker cache

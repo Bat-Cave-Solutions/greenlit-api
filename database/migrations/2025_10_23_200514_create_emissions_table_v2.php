@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('emissions', function (Blueprint $table) {
+        $driver = Schema::getConnection()->getDriverName();
+
+        Schema::create('emissions', function (Blueprint $table) use ($driver) {
             $table->id();
 
             // Core relational columns
@@ -35,8 +37,14 @@ return new class extends Migration
             // Record flags (bit flags for audit trail)
             $table->unsignedInteger('record_flags')->default(0);
 
-            // JSONB column for category-specific inputs
-            $table->jsonb('data');
+            // JSON/JSONB column for category-specific inputs
+            if ($driver === 'pgsql') {
+                // Native JSONB on Postgres
+                $table->jsonb('data');
+            } else {
+                // Fallback JSON type for SQLite and others so tests can run
+                $table->json('data');
+            }
 
             // Standard Laravel timestamps
             $table->timestamps();
@@ -49,29 +57,39 @@ return new class extends Migration
             $table->index('department');
         });
 
-        // Add generated columns for high-usage JSON keys (flight example)
-        DB::statement("ALTER TABLE emissions ADD COLUMN flight_origin VARCHAR(10) GENERATED ALWAYS AS (data->>'flight_origin') STORED");
-        DB::statement("ALTER TABLE emissions ADD COLUMN flight_destination VARCHAR(10) GENERATED ALWAYS AS (data->>'flight_destination') STORED");
-        DB::statement("ALTER TABLE emissions ADD COLUMN flight_distance_km DECIMAL(10,2) GENERATED ALWAYS AS (CAST(data->>'flight_distance_km' AS DECIMAL(10,2))) STORED");
+        // Add generated columns for high-usage JSON keys (flight example) — Postgres only
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE emissions ADD COLUMN flight_origin VARCHAR(10) GENERATED ALWAYS AS (data->>'flight_origin') STORED");
+            DB::statement("ALTER TABLE emissions ADD COLUMN flight_destination VARCHAR(10) GENERATED ALWAYS AS (data->>'flight_destination') STORED");
+            DB::statement("ALTER TABLE emissions ADD COLUMN flight_distance_km DECIMAL(10,2) GENERATED ALWAYS AS (CAST(data->>'flight_distance_km' AS DECIMAL(10,2))) STORED");
+        }
 
-        // Create GIN index on JSONB data
-        DB::statement('CREATE INDEX emissions_data_gin ON emissions USING gin (data)');
+        // Create GIN index on JSONB data — Postgres only
+        if ($driver === 'pgsql') {
+            DB::statement('CREATE INDEX emissions_data_gin ON emissions USING gin (data)');
+        }
 
-        // Create indexes on generated columns
-        DB::statement('CREATE INDEX emissions_flight_origin_idx ON emissions (flight_origin)');
-        DB::statement('CREATE INDEX emissions_flight_destination_idx ON emissions (flight_destination)');
-        DB::statement('CREATE INDEX emissions_flight_route_idx ON emissions (flight_origin, flight_destination)');
+        // Create indexes on generated columns — Postgres only
+        if ($driver === 'pgsql') {
+            DB::statement('CREATE INDEX emissions_flight_origin_idx ON emissions (flight_origin)');
+            DB::statement('CREATE INDEX emissions_flight_destination_idx ON emissions (flight_destination)');
+            DB::statement('CREATE INDEX emissions_flight_route_idx ON emissions (flight_origin, flight_destination)');
+        }
 
-        // Add CHECK constraints at database level
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_scope_check CHECK (scope IN (1, 2, 3))');
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_record_period_check CHECK (record_period >= 190001 AND record_period <= 999912)');
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 3)');
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
+        // Add CHECK constraints at database level — Postgres only
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_scope_check CHECK (scope IN (1, 2, 3))');
+            DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_record_period_check CHECK (record_period >= 190001 AND record_period <= 999912)');
+            DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 3)');
+            DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
+        }
 
-        // CHECK constraints for critical JSON keys based on activity code
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check CHECK (activity_code NOT LIKE 'flight_%' OR (data ? 'flight_origin' AND data ? 'flight_destination'))");
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check CHECK (activity_code NOT LIKE 'accommodation_%' OR (data ? 'nights' AND data ? 'room_type'))");
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check CHECK (activity_code NOT LIKE 'waste_%' OR (data ? 'waste_type' AND data ? 'amount'))");
+        // CHECK constraints for critical JSON keys based on activity code — Postgres only
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check CHECK (activity_code NOT LIKE 'flight_%' OR (data ? 'flight_origin' AND data ? 'flight_destination'))");
+            DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check CHECK (activity_code NOT LIKE 'accommodation_%' OR (data ? 'nights' AND data ? 'room_type'))");
+            DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check CHECK (activity_code NOT LIKE 'waste_%' OR (data ? 'waste_type' AND data ? 'amount'))");
+        }
     }
 
     /**

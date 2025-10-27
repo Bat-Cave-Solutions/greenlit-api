@@ -11,87 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('emissions', function (Blueprint $table) {
-            $table->id();
-
-            // Core relational columns
-            $table->unsignedBigInteger('production_id');
-            $table->date('record_date');
-            $table->integer('record_period'); // YYYYMM format
-            $table->unsignedBigInteger('department')->nullable();
-            $table->string('activity_code', 50)->index();
-            $table->tinyInteger('scope'); // 1, 2, or 3
-            $table->string('country', 3); // ISO 3166-1 alpha-3
-
-            // Emission factor references
-            $table->unsignedBigInteger('emission_factor_id')->nullable();
-            $table->unsignedBigInteger('custom_factor_id')->nullable();
-
-            // Calculation metadata
-            $table->string('calculation_version', 20);
-            $table->decimal('calculated_co2e', 15, 6)->nullable(); // kg CO2e
-
-            // Record flags (bit flags for audit trail)
-            $table->unsignedInteger('record_flags')->default(0);
-
-            // JSONB column for category-specific inputs
-            $table->jsonb('data');
-
-            // Generated columns will be added via raw SQL after table creation
-
-            // Standard Laravel timestamps
-            $table->timestamps();
-
-            // Indexes
-            $table->index(['production_id', 'record_date']);
-            $table->index(['production_id', 'record_period']);
-            $table->index(['scope', 'country']);
-            $table->index('record_period');
-            $table->index('department');
-
-            // GIN index on JSONB data
-            $table->index('data', 'emissions_data_gin')->algorithm('gin');
-
-            // Indexes on generated columns will be created via raw SQL
-        });
-
-        // Add generated columns for high-usage JSON keys
-        DB::statement("ALTER TABLE emissions ADD COLUMN flight_origin VARCHAR(10) 
-            GENERATED ALWAYS AS (data->>'flight_origin') STORED");
-        DB::statement("ALTER TABLE emissions ADD COLUMN flight_destination VARCHAR(10) 
-            GENERATED ALWAYS AS (data->>'flight_destination') STORED");
-        DB::statement("ALTER TABLE emissions ADD COLUMN flight_distance_km DECIMAL(10,2) 
-            GENERATED ALWAYS AS (CAST(data->>'flight_distance_km' AS decimal(10,2))) STORED");
-
-        // Add indexes on generated columns
-        DB::statement('CREATE INDEX emissions_flight_origin_idx ON emissions (flight_origin)');
-        DB::statement('CREATE INDEX emissions_flight_destination_idx ON emissions (flight_destination)');
-        DB::statement('CREATE INDEX emissions_flight_route_idx ON emissions (flight_origin, flight_destination)');
-
-        // Add CHECK constraints at database level
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_scope_check CHECK (scope IN (1, 2, 3))');
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_record_period_check CHECK (record_period >= 190001 AND record_period <= 999912)');
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 3)');
-        DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
-
-        // CHECK constraints for critical JSON keys based on activity code
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check 
-            CHECK (
-                activity_code NOT LIKE 'flight_%' OR 
-                (data ?? 'flight_origin' AND data ?? 'flight_destination')
-            )");
-
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check 
-            CHECK (
-                activity_code NOT LIKE 'accommodation_%' OR 
-                (data ?? 'nights' AND data ?? 'room_type')
-            )");
-
-        DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check 
-            CHECK (
-                activity_code NOT LIKE 'waste_%' OR 
-                (data ?? 'waste_type' AND data ?? 'amount')
-            )");
+        // No-op: superseded by 2025_10_23_200514_create_emissions_table_v2
+        // Keeping this migration file to preserve timestamp ordering without creating the table twice.
+        if (Schema::hasTable('emissions')) {
+            return;
+        }
+        // Intentionally do nothing; the v2 migration will create the table with the final schema.
     }
 
     /**
