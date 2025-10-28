@@ -34,3 +34,36 @@ make horizon      # run horizon once (service also available in compose)
 make pint         # lint
 make test         # run test suite
 ```
+
+## Services
+
+`docker compose up -d` starts the full stack by default:
+
+- App (PHP-FPM)
+- Nginx (on :8080)
+- Postgres (db, published on host :5434 by default)
+- Redis (cache/queues)
+- Horizon (queue worker + dashboard)
+- Soketi (Pusher-compatible WebSocket on :6001)
+
+You can always see what’s running:
+
+```bash
+docker compose ps
+```
+
+### Changing the host DB port
+
+The Postgres container listens on 5432 internally, and is published to your host using the `DB_PORT_HOST` variable from `.env`:
+
+```env
+DB_PORT_HOST=5434
+```
+
+To use a different host port (e.g., 5433 or 55432), update `DB_PORT_HOST` and restart:
+
+```bash
+docker compose up -d
+```
+
+Inside containers, keep `DB_HOST=db` and `DB_PORT=5432` — only the host-facing port changes.

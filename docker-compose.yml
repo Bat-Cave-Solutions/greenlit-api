@@ -6,6 +6,18 @@ services:
     container_name: greenlit_api_app
     volumes:
       - ./:/var/www
+    environment:
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: greenlit
+      DB_USERNAME: greenlit
+      DB_PASSWORD: secret
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: cookie
+      REDIS_HOST: redis
     depends_on:
       db:
         condition: service_healthy
@@ -49,7 +61,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5434:5432"
+      - "${DB_PORT_HOST:-55432}:5432"
     networks:
       - app-greenlit
     healthcheck:
@@ -63,6 +75,7 @@ services:
     container_name: greenlit_api_redis
     ports:
       - "6379:6379"
+    
     networks:
       - app-greenlit
     healthcheck:
@@ -80,11 +93,24 @@ services:
     command: php artisan horizon
     volumes:
       - ./:/var/www
+    environment:
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: greenlit
+      DB_USERNAME: greenlit
+      DB_PASSWORD: secret
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: cookie
+      REDIS_HOST: redis
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    
     networks:
       - app-greenlit
 
@@ -93,6 +119,7 @@ services:
     container_name: greenlit_api_soketi
     ports:
       - "6001:6001" # WebSocket
+    
     environment:
       SOKETI_DEBUG: "1"
       SOKETI_DEFAULT_APP_ID: "${PUSHER_APP_ID:-greenlit}"
