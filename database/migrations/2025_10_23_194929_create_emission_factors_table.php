@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('source', 50); // 'climatiq', 'defra', 'epa', etc.
-            $table->string('country', 3); // ISO 3166-1 alpha-3
+            $table->string('country', 2); // ISO 3166-1 alpha-2
             $table->integer('year');
             $table->string('unit', 20); // 'kg', 'tonne', 'kwh', 'km', etc.
             $table->decimal('co2_factor', 15, 6);

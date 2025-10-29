@@ -23,7 +23,7 @@ The `emissions` table includes the following relational columns for optimal quer
 - **Classification**:
   - `activity_code` - References activity_code_tree (indexed)
   - `scope` - Emission scope (1, 2, or 3) with CHECK constraint
-  - `country` - ISO 3166-1 alpha-3 country code
+  - `country` - ISO 3166-1 alpha-2 country code (two uppercase letters)
   - `department` - Optional department identifier
 
 - **Calculation Results**:
@@ -103,8 +103,8 @@ CHECK (scope IN (1, 2, 3))
 -- Period format validation  
 CHECK (record_period >= 190001 AND record_period <= 999912)
 
--- Country code validation
-CHECK (LENGTH(country) = 3)
+-- Country code validation (alpha-2)
+CHECK (LENGTH(country) = 2)
 
 -- Factor requirement
 CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)

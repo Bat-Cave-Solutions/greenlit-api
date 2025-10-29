@@ -29,7 +29,7 @@ class EmissionFactory extends Factory
             'department' => fake()->optional()->numberBetween(1, 10),
             'activity_code' => $activityCode,
             'scope' => fake()->randomElement([1, 2, 3]),
-            'country' => fake()->countryISOAlpha3(),
+            'country' => fake()->countryCode(),
             'emission_factor_id' => EmissionFactor::factory(),
             'custom_factor_id' => null,
             'calculation_version' => 'v2.1.0',

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->unsignedBigInteger('department')->nullable();
             $table->string('activity_code', 50)->index();
             $table->tinyInteger('scope'); // 1, 2, or 3
-            $table->string('country', 3); // ISO 3166-1 alpha-3
+            $table->string('country', 2); // ISO 3166-1 alpha-2
 
             // Emission factor references
             $table->unsignedBigInteger('emission_factor_id')->nullable();
@@ -90,7 +90,7 @@ return new class extends Migration
         if ($driver === 'pgsql') {
             DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_scope_check CHECK (scope IN (1, 2, 3))');
             DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_record_period_check CHECK (record_period >= 190001 AND record_period <= 999912)');
-            DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 3)');
+            DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_country_check CHECK (LENGTH(country) = 2)');
             DB::statement('ALTER TABLE emissions ADD CONSTRAINT emissions_factor_check CHECK (emission_factor_id IS NOT NULL OR custom_factor_id IS NOT NULL)');
         }
 

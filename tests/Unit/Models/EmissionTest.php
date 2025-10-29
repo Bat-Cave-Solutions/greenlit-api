@@ -188,16 +188,16 @@ class EmissionTest extends TestCase
 
     public function test_country_code_validation()
     {
-        // Valid 3-letter country code
+        // Valid 2-letter country code
         $emission = Emission::factory()->create([
             'production_id' => $this->production->id,
             'emission_factor_id' => $this->emissionFactor->id,
-            'country' => 'USA',
+            'country' => 'US',
         ]);
 
         $this->assertDatabaseHas('emissions', [
             'id' => $emission->id,
-            'country' => 'USA',
+            'country' => 'US',
         ]);
     }
 

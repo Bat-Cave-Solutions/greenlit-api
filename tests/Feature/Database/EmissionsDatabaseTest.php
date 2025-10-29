@@ -182,7 +182,7 @@ class EmissionsDatabaseTest extends TestCase
             'record_period' => 202410,
             'activity_code' => 'test',
             'scope' => 4, // Invalid scope
-            'country' => 'USA',
+            'country' => 'US',
             'emission_factor_id' => $this->emissionFactor->id,
             'calculation_version' => 'v1.0.0',
             'calculated_co2e' => 100.0,
@@ -214,7 +214,7 @@ class EmissionsDatabaseTest extends TestCase
             'record_period' => 190000, // Invalid period (too early)
             'activity_code' => 'test',
             'scope' => 1,
-            'country' => 'USA',
+            'country' => 'US',
             'emission_factor_id' => $this->emissionFactor->id,
             'calculation_version' => 'v1.0.0',
             'calculated_co2e' => 100.0,
@@ -227,15 +227,15 @@ class EmissionsDatabaseTest extends TestCase
 
     public function test_country_code_length_check_constraint()
     {
-        // Valid 3-letter code should work
+        // Valid 2-letter code should work
         $emission = Emission::factory()->make([
             'production_id' => $this->production->id,
             'emission_factor_id' => $this->emissionFactor->id,
-            'country' => 'USA',
+            'country' => 'US',
         ]);
         $this->assertTrue($emission->save());
 
-        // Invalid length should fail
+        // Invalid length should fail (3 letters is invalid now)
         $this->expectException(\Illuminate\Database\QueryException::class);
         DB::table('emissions')->insert([
             'production_id' => $this->production->id,
@@ -243,7 +243,7 @@ class EmissionsDatabaseTest extends TestCase
             'record_period' => 202410,
             'activity_code' => 'test',
             'scope' => 1,
-            'country' => 'US', // Too short
+            'country' => 'USA', // Too long
             'emission_factor_id' => $this->emissionFactor->id,
             'calculation_version' => 'v1.0.0',
             'calculated_co2e' => 100.0,
@@ -283,7 +283,7 @@ class EmissionsDatabaseTest extends TestCase
             'record_period' => 202410,
             'activity_code' => 'test',
             'scope' => 1,
-            'country' => 'USA',
+            'country' => 'US',
             'emission_factor_id' => null,
             'custom_factor_id' => null,
             'calculation_version' => 'v1.0.0',
@@ -312,7 +312,7 @@ class EmissionsDatabaseTest extends TestCase
             'record_period' => 202410,
             'activity_code' => 'test',
             'scope' => 1,
-            'country' => 'USA',
+            'country' => 'US',
             'emission_factor_id' => $this->emissionFactor->id,
             'calculation_version' => 'v1.0.0',
             'calculated_co2e' => 100.0,
@@ -355,7 +355,7 @@ class EmissionsDatabaseTest extends TestCase
                 'record_period' => 202410,
                 'activity_code' => 'flight_domestic',
                 'scope' => 3,
-                'country' => 'USA',
+                'country' => 'US',
                 'emission_factor_id' => $this->emissionFactor->id,
                 'calculation_version' => 'v1.0.0',
                 'calculated_co2e' => rand(100, 1000),
