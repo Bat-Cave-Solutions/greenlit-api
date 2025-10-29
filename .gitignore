@@ -17,17 +17,20 @@ public_html/hot
 
 storage/*.key
 .env
+.env.*
 Homestead.yaml
 Homestead.json
 /.vagrant
 .phpunit.result.cache
 
 /public/build
-/storage/pail
+/# Ignore all storage except its .gitignore placeholder
+/storage/*
+!/storage/.gitignore
+!/storage/pail
 .env.backup
 .env.production
 .phpactor.json
 auth.json
 
-/scripts
-scripts/init-laravel-alt.sh
+/# Keep scripts tracked except explicitly ignored elsewhere

@@ -19,7 +19,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="APP_KEY" value="base64:4dxA2i1Hnqjv4cP5lY7a8s9D0Q2R3T4U5V6W7X8Y9ZA="/>
+    <!-- APP_KEY intentionally omitted for security; test harness generates one via scripts/test.sh or CI key:generate step -->
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>

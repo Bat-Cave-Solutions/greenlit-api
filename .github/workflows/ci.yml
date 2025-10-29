@@ -49,6 +49,21 @@ jobs:
       - name: Lint (Pint)
         run: vendor/bin/pint --test
 
+      - name: Secret hygiene check
+        run: |
+          # Fail if any .env files are tracked
+          if git ls-files | grep -E '(^|/).env(\.|$)' ; then
+            echo "Error: .env files should not be committed" >&2
+            exit 1
+          fi
+          # Fail if APP_KEY is present in tracked files (allow in .env.example and docs)
+          disallowed=$(git grep -n "^APP_KEY=" -- ':!*.example' ':!docs/**' || true)
+          if [ -n "$disallowed" ]; then
+            echo "Potential APP_KEY exposure in repository:" >&2
+            echo "$disallowed" >&2
+            exit 1
+          fi
+
       - name: Static analysis (Larastan)
         run: vendor/bin/phpstan analyse --memory-limit=1G
 
@@ -112,6 +127,19 @@ jobs:
 
       - name: Generate app key
         run: php artisan key:generate
+      
+      - name: Secret hygiene check
+        run: |
+          if git ls-files | grep -E '(^|/).env(\.|$)' ; then
+            echo "Error: .env files should not be committed" >&2
+            exit 1
+          fi
+          disallowed=$(git grep -n "^APP_KEY=" -- ':!*.example' ':!docs/**' || true)
+          if [ -n "$disallowed" ]; then
+            echo "Potential APP_KEY exposure in repository:" >&2
+            echo "$disallowed" >&2
+            exit 1
+          fi
 
       - name: Wait for Postgres
         run: |
