@@ -29,7 +29,7 @@ return new class extends Migration
         }
 
         // Convert emission_factors.country to CHAR(2) with uppercase, truncating to first two characters when needed
-        DB::statement("ALTER TABLE emission_factors ALTER COLUMN country TYPE CHAR(2) USING UPPER(SUBSTRING(country FROM 1 FOR 2))");
+        DB::statement('ALTER TABLE emission_factors ALTER COLUMN country TYPE CHAR(2) USING UPPER(SUBSTRING(country FROM 1 FOR 2))');
 
         // Add strict alpha-2 check constraint
         DB::statement("ALTER TABLE emission_factors ADD CONSTRAINT emission_factors_country_alpha2_check CHECK (country ~ '^[A-Z]{2}$')");
@@ -46,7 +46,7 @@ return new class extends Migration
         }
 
         // Drop alpha-2 check and widen back to CHAR(3)
-        DB::statement("ALTER TABLE emission_factors DROP CONSTRAINT IF EXISTS emission_factors_country_alpha2_check");
-        DB::statement("ALTER TABLE emission_factors ALTER COLUMN country TYPE CHAR(3) USING country::text");
+        DB::statement('ALTER TABLE emission_factors DROP CONSTRAINT IF EXISTS emission_factors_country_alpha2_check');
+        DB::statement('ALTER TABLE emission_factors ALTER COLUMN country TYPE CHAR(3) USING country::text');
     }
 };
