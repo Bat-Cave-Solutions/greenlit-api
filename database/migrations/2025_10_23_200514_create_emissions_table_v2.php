@@ -19,7 +19,7 @@ return new class extends Migration
 
         $driver = Schema::getConnection()->getDriverName();
 
-    Schema::create('emissions', function (Blueprint $table) use ($driver) {
+        Schema::create('emissions', function (Blueprint $table) use ($driver) {
             $table->id();
 
             // Core relational columns
