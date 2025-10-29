@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a bug
+labels: [bug]
+body:
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: input
+    id: version
+    attributes:
+      label: Commit/branch
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: Tests added or updated
+        - label: Docs updated if needed

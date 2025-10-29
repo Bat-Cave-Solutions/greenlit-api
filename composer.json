@@ -53,11 +53,17 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+        ],
+        "test": "php artisan test",
+        "test:docker:pgsql": "docker compose exec app bash -lc 'DB_CONNECTION=pgsql DB_HOST=db DB_PORT=5432 DB_DATABASE=greenlit DB_USERNAME=greenlit DB_PASSWORD=secret php artisan test'",
+        "lint": "vendor/bin/pint --test",
+        "lint:fix": "vendor/bin/pint",
+        "stan": "vendor/bin/phpstan analyse --memory-limit=1G",
+        "ci": [
+            "@lint",
+            "@stan",
+            "@test"
         ]
-    ,
-    "test": "@test:docker",
-    "test:docker": "docker compose exec app bash -lc 'DB_CONNECTION=sqlite DB_DATABASE=\":memory:\" php artisan test'",
-        "test:docker:pgsql": "docker compose exec app bash -lc 'DB_CONNECTION=pgsql DB_HOST=db DB_PORT=5432 DB_DATABASE=greenlit DB_USERNAME=greenlit DB_PASSWORD=secret php artisan test'"
     },
     "extra": {
         "laravel": {
