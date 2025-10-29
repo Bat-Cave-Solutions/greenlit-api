@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // If the table already exists (e.g., from a previous partial run), skip creation to be idempotent
+        if (Schema::hasTable('emissions')) {
+            return;
+        }
+
         $driver = Schema::getConnection()->getDriverName();
 
         Schema::create('emissions', function (Blueprint $table) use ($driver) {

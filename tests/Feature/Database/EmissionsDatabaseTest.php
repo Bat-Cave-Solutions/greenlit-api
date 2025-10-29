@@ -25,6 +25,12 @@ class EmissionsDatabaseTest extends TestCase
     {
         parent::setUp();
 
+        // These tests rely on PostgreSQL features (JSONB, generated columns, GIN indexes).
+        // Skip the entire suite when not running against a Postgres driver (e.g., SQLite in CI).
+        if (DB::getDriverName() !== 'pgsql') {
+            $this->markTestSkipped('PostgreSQL-only database tests are skipped on non-PgSQL drivers.');
+        }
+
         $this->organization = Organization::factory()->create();
         $this->production = Production::factory()->create([
             'organization_id' => $this->organization->id,

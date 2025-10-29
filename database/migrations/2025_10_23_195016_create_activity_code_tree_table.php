@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -32,8 +33,11 @@ return new class extends Migration
             $table->index('level');
         });
 
-        // Add CHECK constraint for scope
-        DB::statement('ALTER TABLE activity_code_tree ADD CONSTRAINT activity_code_tree_scope_check CHECK (scope IN (1, 2, 3))');
+        // Add CHECK constraint for scope (PostgreSQL only). SQLite used in CI doesn't support this ALTER syntax.
+        $driver = Schema::getConnection()->getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE activity_code_tree ADD CONSTRAINT activity_code_tree_scope_check CHECK (scope IN (1, 2, 3))');
+        }
     }
 
     /**
