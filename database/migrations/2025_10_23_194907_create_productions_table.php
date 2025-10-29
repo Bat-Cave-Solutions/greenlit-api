@@ -26,6 +26,9 @@ return new class extends Migration
             $table->index(['organization_id', 'is_active']);
             $table->index('reporting_period_start');
             $table->index('reporting_period_end');
+
+            // Inline FK so SQLite includes it in CREATE TABLE and Postgres enforces it
+            $table->foreign('organization_id')->references('id')->on('organizations');
         });
     }
 

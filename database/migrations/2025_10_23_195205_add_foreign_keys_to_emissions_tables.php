@@ -11,19 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('productions', function (Blueprint $table) {
-            $table->foreign('organization_id')->references('id')->on('organizations');
-        });
+        $driver = Schema::getConnection()->getDriverName();
 
-        Schema::table('custom_emission_factors', function (Blueprint $table) {
-            $table->foreign('organization_id')->references('id')->on('organizations');
-        });
+        // Skip on non-Postgres drivers; SQLite cannot safely add FKs post-creation.
+        if ($driver !== 'pgsql') {
+            return;
+        }
 
-        Schema::table('emissions', function (Blueprint $table) {
-            $table->foreign('production_id')->references('id')->on('productions');
-            $table->foreign('emission_factor_id')->references('id')->on('emission_factors');
-            $table->foreign('custom_factor_id')->references('id')->on('custom_emission_factors');
-        });
+        // Productions and custom_emission_factors FKs are now defined inline in their create migrations.
+
+        // Emissions foreign keys are defined inline in the creation migration (v2).
     }
 
     /**
@@ -31,11 +28,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('emissions', function (Blueprint $table) {
-            $table->dropForeign(['production_id']);
-            $table->dropForeign(['emission_factor_id']);
-            $table->dropForeign(['custom_factor_id']);
-        });
+        $driver = Schema::getConnection()->getDriverName();
+        if ($driver !== 'pgsql') {
+            return;
+        }
+
+        // Emissions foreign keys are dropped with the table in its own migration.
 
         Schema::table('custom_emission_factors', function (Blueprint $table) {
             $table->dropForeign(['organization_id']);

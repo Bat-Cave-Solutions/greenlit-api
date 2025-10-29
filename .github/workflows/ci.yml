@@ -113,10 +113,16 @@ jobs:
       - name: Generate app key
         run: php artisan key:generate
 
+      - name: Wait for Postgres
+        run: |
+          for i in {1..60}; do
+            if (echo > /dev/tcp/127.0.0.1/5432) >/dev/null 2>&1; then
+              echo "Postgres is up"; break; fi; sleep 1; done
+
       - name: Run migrations (Postgres)
         env:
           DB_CONNECTION: pgsql
-          DB_HOST: postgres
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_DATABASE: greenlit
           DB_USERNAME: greenlit
@@ -129,7 +135,7 @@ jobs:
       - name: Tests (Pest - Postgres)
         env:
           DB_CONNECTION: pgsql
-          DB_HOST: postgres
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_DATABASE: greenlit
           DB_USERNAME: greenlit

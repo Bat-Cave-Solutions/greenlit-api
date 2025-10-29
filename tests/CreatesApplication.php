@@ -13,8 +13,8 @@ trait CreatesApplication
     {
         $app = require __DIR__.'/../bootstrap/app.php';
 
-        // Use testing environment if available
-        if (method_exists($app, 'loadEnvironmentFrom')) {
+        // Load .env.testing if present to customize env for tests; otherwise use defaults without warnings
+        if (method_exists($app, 'loadEnvironmentFrom') && file_exists($app->basePath('.env.testing'))) {
             $app->loadEnvironmentFrom('.env.testing');
         }
 

@@ -29,6 +29,9 @@ return new class extends Migration
             // Indexes
             $table->index(['organization_id', 'activity_code']);
             $table->index(['organization_id', 'is_active']);
+
+            // Inline FK so SQLite includes it and Postgres enforces it
+            $table->foreign('organization_id')->references('id')->on('organizations');
         });
     }
 

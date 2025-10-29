@@ -19,7 +19,7 @@ return new class extends Migration
 
         $driver = Schema::getConnection()->getDriverName();
 
-        Schema::create('emissions', function (Blueprint $table) use ($driver) {
+    Schema::create('emissions', function (Blueprint $table) use ($driver) {
             $table->id();
 
             // Core relational columns
@@ -60,6 +60,11 @@ return new class extends Migration
             $table->index(['scope', 'country']);
             $table->index('record_period');
             $table->index('department');
+
+            // Define foreign keys inline so SQLite can include them in CREATE TABLE
+            $table->foreign('production_id')->references('id')->on('productions');
+            $table->foreign('emission_factor_id')->references('id')->on('emission_factors');
+            $table->foreign('custom_factor_id')->references('id')->on('custom_emission_factors');
         });
 
         // Add generated columns for high-usage JSON keys (flight example) — Postgres only
@@ -91,9 +96,12 @@ return new class extends Migration
 
         // CHECK constraints for critical JSON keys based on activity code — Postgres only
         if ($driver === 'pgsql') {
-            DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check CHECK (activity_code NOT LIKE 'flight_%' OR (data ? 'flight_origin' AND data ? 'flight_destination'))");
-            DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check CHECK (activity_code NOT LIKE 'accommodation_%' OR (data ? 'nights' AND data ? 'room_type'))");
-            DB::statement("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check CHECK (activity_code NOT LIKE 'waste_%' OR (data ? 'waste_type' AND data ? 'amount'))");
+            // Use unprepared to avoid PDO interpreting '?' JSON operators as placeholders
+            DB::unprepared("ALTER TABLE emissions ADD CONSTRAINT emissions_flight_data_check CHECK (activity_code NOT LIKE 'flight_%' OR (data ? 'flight_origin' AND data ? 'flight_destination'))");
+            DB::unprepared("ALTER TABLE emissions ADD CONSTRAINT emissions_accommodation_data_check CHECK (activity_code NOT LIKE 'accommodation_%' OR (data ? 'nights' AND data ? 'room_type'))");
+            DB::unprepared("ALTER TABLE emissions ADD CONSTRAINT emissions_waste_data_check CHECK (activity_code NOT LIKE 'waste_%' OR (data ? 'waste_type' AND data ? 'amount'))");
+
+            // Foreign keys already added inline above for all drivers.
         }
     }
 
