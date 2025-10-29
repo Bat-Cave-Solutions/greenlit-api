@@ -51,12 +51,18 @@ jobs:
 
       - name: Secret hygiene check
         run: |
-          # Fail if any .env files are tracked
-          if git ls-files | grep -E '(^|/).env(\.|$)' ; then
-            echo "Error: .env files should not be committed" >&2
-            exit 1
+          # Fail if any real .env files are tracked (allow only example variants)
+          tracked_env=$(git ls-files | grep -E '(^|/)\.env($|[\._])' || true)
+          if echo "$tracked_env" | grep -E '.' >/dev/null 2>&1; then
+            # Filter out allowed example files
+            offenders=$(echo "$tracked_env" | grep -Ev '(^|/)\.env\.example($|/)|(^|/)\.env\.testing\.example($|/)' || true)
+            if echo "$offenders" | grep -E '.' >/dev/null 2>&1; then
+              echo "Error: .env files should not be committed:" >&2
+              echo "$offenders" >&2
+              exit 1
+            fi
           fi
-          # Fail if APP_KEY is present in tracked files (allow in .env.example and docs)
+          # Fail if APP_KEY is present in tracked files (allow in *.example and docs)
           disallowed=$(git grep -n "^APP_KEY=" -- ':!*.example' ':!docs/**' || true)
           if [ -n "$disallowed" ]; then
             echo "Potential APP_KEY exposure in repository:" >&2
@@ -130,9 +136,14 @@ jobs:
       
       - name: Secret hygiene check
         run: |
-          if git ls-files | grep -E '(^|/).env(\.|$)' ; then
-            echo "Error: .env files should not be committed" >&2
-            exit 1
+          tracked_env=$(git ls-files | grep -E '(^|/)\.env($|[\._])' || true)
+          if echo "$tracked_env" | grep -E '.' >/dev/null 2>&1; then
+            offenders=$(echo "$tracked_env" | grep -Ev '(^|/)\.env\.example($|/)|(^|/)\.env\.testing\.example($|/)' || true)
+            if echo "$offenders" | grep -E '.' >/dev/null 2>&1; then
+              echo "Error: .env files should not be committed:" >&2
+              echo "$offenders" >&2
+              exit 1
+            fi
           fi
           disallowed=$(git grep -n "^APP_KEY=" -- ':!*.example' ':!docs/**' || true)
           if [ -n "$disallowed" ]; then
