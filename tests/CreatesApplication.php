@@ -11,10 +11,12 @@ trait CreatesApplication
      */
     public function createApplication()
     {
+        /** @var \Illuminate\Foundation\Application $app */
         $app = require __DIR__.'/../bootstrap/app.php';
 
         // Load .env.testing if present to customize env for tests; otherwise use defaults without warnings
-        if (method_exists($app, 'loadEnvironmentFrom') && file_exists($app->basePath('.env.testing'))) {
+        $envTestingPath = dirname(__DIR__).'/.env.testing';
+        if (method_exists($app, 'loadEnvironmentFrom') && file_exists($envTestingPath)) {
             $app->loadEnvironmentFrom('.env.testing');
         }
 
